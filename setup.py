@@ -5,5 +5,5 @@ setup(
     name="PrettyLogger",
     version="1.0.0",
     description="TODO",
-    packages=find_packages(where="PrettyLogger"),
+    packages=["PrettyLogger"],
 )
