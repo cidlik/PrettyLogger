@@ -18,10 +18,13 @@ class PrettyLogger(logging.Logger):
         self.logger = logging.getLogger()
 
     def debug(self, foo: str):
-        tmp = self.logger.debug(f"{self.OKGREEN}[DEBUG]:{self.ENDC} {foo}")
+        self.logger.debug(f"{self.OKGREEN}[DEBUG]:\t{self.ENDC} {foo}")
+
+    def info(self, foo: str):
+        self.logger.info(f"{self.OKBLUE}[INFO]:\t{self.ENDC} {foo}")
 
     def warning(self, foo: str):
-        self.logger.warning(f"{self.WARNING}[WARNING]:{self.ENDC} {foo}")
+        self.logger.warning(f"{self.WARNING}[WARNING]:\t{self.ENDC} {foo}")
 
     def error(self, foo: str):
-        self.logger.error(f"{self.FAIL}[ERROR]:{self.ENDC} {foo}", stack_info=True)
+        self.logger.error(f"{self.FAIL}[ERROR]:\t{self.ENDC} {foo}", stack_info=True, stacklevel=255)
