@@ -1,30 +1,70 @@
+# Sources:
+# 1. https://stackoverflow.com/a/17037016
+# 2. https://stackoverflow.com/a/56944256
+
+
+import abc
 import logging
 
 
-class PrettyLogger(logging.Logger):
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+class PrettyLogger(abc.ABC, logging.Logger):
+    def __init__(self):
+        super().__init__(name="logger")
+        logging.basicConfig(level=0)
 
-    def __init__(self, log_level=0):
-        FORMAT = "%(message)s"
-        logging.basicConfig(level=log_level, format=FORMAT)
-        self.logger = logging.getLogger()
+    def getLogger(self, name, filename="log.txt", level=0):
+        logger = logging.getLogger(name)
+        if logger.hasHandlers():
+            logger.handlers.clear()
+        logger.setLevel(level=level)
+        handler = self.getHandler(filename)
+        handler.setFormatter(self.getFormatter())
+        logger.addHandler(handler)
+        logger.propagate = False
+        return logger
 
-    def debug(self, foo: str):
-        self.logger.debug(f"{self.OKGREEN}[DEBUG]:\t{self.ENDC} {foo}")
+    def getHandler(self, filename=None) -> logging.Handler:
+        pass
 
-    def info(self, foo: str):
-        self.logger.info(f"{self.OKBLUE}[INFO]:\t{self.ENDC} {foo}")
+    def getFormatter(self):
+        pass
 
-    def warning(self, foo: str):
-        self.logger.warning(f"{self.WARNING}[WARNING]:\t{self.ENDC} {foo}")
 
-    def error(self, foo: str):
-        self.logger.error(f"{self.FAIL}[ERROR]:\t{self.ENDC} {foo}", stack_info=True, stacklevel=255)
+class PrettyFileLogger(PrettyLogger):
+    def getHandler(self, filename: str) -> logging.Handler:
+        return logging.FileHandler(filename=filename)
+
+    def getFormatter(self):
+        format = "%(asctime)s : %(levelname)s : %(message)s"
+        return logging.Formatter(format)
+
+
+class PrettyStreamLogger(PrettyLogger):
+    def getHandler(self, filename: None) -> logging.Handler:
+        return logging.StreamHandler()
+
+    def getFormatter(self):
+        format = f"%(levelname)s\t%(message)s"
+        return CustomFormatter(format)
+
+
+class CustomFormatter(logging.Formatter):
+    BLUE = '\033[94m'
+    CYAN = '\033[96m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    ENDCOLOR = '\033[0m'
+
+    color = {
+        logging.DEBUG: GREEN,
+        logging.INFO: BLUE,
+        logging.WARNING: YELLOW,
+        logging.ERROR: RED,
+    }
+
+    def format(self, record):
+        formatter = logging.Formatter(
+            f"{self.color.get(record.levelno)}%(levelname)s{self.ENDCOLOR}\n\t%(message)s\n"
+        )
+        return formatter.format(record)
